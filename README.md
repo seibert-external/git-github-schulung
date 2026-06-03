@@ -27,3 +27,5 @@ Problem ohne Versionsverwaltung · Git ≠ GitHub · Repository · Commit ·
 Die drei Bereiche (Arbeitsverzeichnis / Staging / Repository) · Branches · Merge ·
 Clone / Push / Pull · Pull Request &amp; Review · Kommandozeile · Mitmach-Teil ·
 Quiz · Glossar · Spickzettel.
+
+## Beispiele
