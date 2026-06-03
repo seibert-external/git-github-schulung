@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git &amp; GitHub für alle – ganz ohne Vorkenntnisse</title>
+<style>
+  :root{
+    --wd:#f59e0b;       --wd-bg:#fff7ed;     /* Arbeitsverzeichnis */
+    --stage:#8b5cf6;    --stage-bg:#f5f3ff;  /* Staging */
+    --repo:#10b981;     --repo-bg:#ecfdf5;   /* Repository */
+    --hub:#3b82f6;      --hub-bg:#eff6ff;    /* GitHub / Remote */
+    --accent:#4f46e5;   --accent-bg:#eef2ff;
+    --warn:#ef4444;     --warn-bg:#fef2f2;
+    --ink:#1f2433;      --muted:#5b6172;
+    --line:#e3e6ef;     --paper:#ffffff;     --bg:#f4f5fb;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:19px; line-height:1.7; scroll-padding-top:84px;
+  }
+
+  /* ---------- Kopf / Navigation ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50; background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  }
+  .topbar .inner{display:flex; align-items:center; gap:18px; max-width:1100px; margin:0 auto; padding:10px 20px}
+  .brand{font-weight:800; font-size:18px; white-space:nowrap; color:var(--accent)}
+  .brand small{display:block; font-weight:500; font-size:12px; color:var(--muted)}
+  .toc{display:flex; gap:6px; overflow-x:auto; scrollbar-width:thin}
+  .toc a{
+    flex:0 0 auto; text-decoration:none; color:var(--muted); font-size:13.5px; font-weight:600;
+    padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:#fff; white-space:nowrap;
+  }
+  .toc a:hover{color:var(--accent); border-color:var(--accent)}
+
+  /* ---------- Grundlayout ---------- */
+  main{max-width:1100px; margin:0 auto; padding:0 20px 80px}
+  .chapter{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:38px 42px; margin:30px 0; box-shadow:0 1px 3px rgba(20,20,50,.04);
+  }
+  .chapter-num{
+    display:inline-block; font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--accent); background:var(--accent-bg); padding:4px 12px; border-radius:999px; margin-bottom:14px;
+  }
+  h1{font-size:42px; line-height:1.15; margin:.2em 0 .3em}
+  h2{font-size:30px; line-height:1.2; margin:0 0 .4em}
+  h3{font-size:21px; margin:1.4em 0 .3em}
+  p{margin:.7em 0}
+  .lead{font-size:21px; color:var(--ink)}
+  .muted{color:var(--muted)}
+  code{background:#f0f1f6; padding:2px 7px; border-radius:6px; font-size:.86em;
+    font-family:"SF Mono",SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace}
+  strong{font-weight:700}
+  ul,ol{margin:.6em 0; padding-left:1.3em}
+  li{margin:.35em 0}
+
+  /* ---------- Diagramme ---------- */
+  figure.diagram{margin:26px 0; padding:22px; background:#fafbff; border:1px solid var(--line); border-radius:14px}
+  figure.diagram svg{width:100%; height:auto; display:block}
+  figure.diagram figcaption{text-align:center; color:var(--muted); font-size:14.5px; margin-top:12px}
+
+  /* ---------- Callouts ---------- */
+  .callout{border-radius:14px; padding:16px 20px 16px 18px; margin:20px 0; border-left:6px solid var(--accent); background:var(--accent-bg)}
+  .callout .tag{display:block; font-weight:800; font-size:14px; letter-spacing:.02em; margin-bottom:4px}
+  .callout p{margin:.3em 0}
+  .analogy{border-color:var(--hub); background:var(--hub-bg)}
+  .analogy .tag{color:var(--hub)}
+  .merksatz{border-color:var(--repo); background:var(--repo-bg)}
+  .merksatz .tag{color:#0a8f63}
+  .miss{border-color:var(--warn); background:var(--warn-bg)}
+  .miss .tag{color:var(--warn)}
+  .mitmach{border-color:var(--accent); background:var(--accent-bg)}
+  .mitmach .tag{color:var(--accent)}
+
+  details.trainer{margin:18px 0 4px; border:1px dashed #c7cbe0; border-radius:12px; background:#fbfbfe}
+  details.trainer summary{cursor:pointer; font-weight:700; color:var(--muted); padding:12px 16px; list-style:none}
+  details.trainer summary::-webkit-details-marker{display:none}
+  details.trainer summary::before{content:"▸ "; color:var(--accent)}
+  details.trainer[open] summary::before{content:"▾ "}
+  details.trainer .body{padding:0 18px 16px; color:var(--muted); font-size:16.5px}
+
+  /* ---------- Schritt-Liste (Mitmachen) ---------- */
+  ol.steps{list-style:none; counter-reset:s; padding:0; margin:24px 0}
+  ol.steps>li{counter-increment:s; position:relative; padding:14px 14px 14px 64px; margin:12px 0;
+    background:#fafbff; border:1px solid var(--line); border-radius:12px}
+  ol.steps>li::before{content:counter(s); position:absolute; left:16px; top:14px; width:34px; height:34px;
+    background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800}
+  ol.steps b{color:var(--accent)}
+
+  /* ---------- Tabellen ---------- */
+  table{width:100%; border-collapse:collapse; margin:20px 0; font-size:16.5px}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{background:#f3f4fb; font-size:14px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
+  td code{white-space:nowrap}
+
+  /* ---------- Terminal ---------- */
+  .terminal{background:#1e2233; border-radius:12px; overflow:hidden; margin:22px 0; box-shadow:0 6px 20px rgba(20,20,50,.18)}
+  .terminal .bar{background:#2b3147; padding:9px 14px; display:flex; gap:7px; align-items:center}
+  .terminal .bar i{width:12px; height:12px; border-radius:50%; display:inline-block}
+  .terminal .bar i:nth-child(1){background:#ff5f56}
+  .terminal .bar i:nth-child(2){background:#ffbd2e}
+  .terminal .bar i:nth-child(3){background:#27c93f}
+  .terminal .bar span{color:#8b91a7; font-size:13px; margin-left:8px}
+  .terminal pre{margin:0; padding:18px 20px; color:#e6e8f0; font-size:15px; line-height:1.8; overflow-x:auto;
+    font-family:"SF Mono",SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace}
+  .terminal .p{color:#27c93f}      /* prompt */
+  .terminal .c{color:#6b7394}      /* kommentar */
+  .terminal .k{color:#8ab4ff}      /* befehl */
+
+  /* ---------- Glossar ---------- */
+  dl.glossar{margin:18px 0}
+  dl.glossar div{padding:14px 0; border-bottom:1px solid var(--line)}
+  dl.glossar dt{font-weight:800; font-size:18px; color:var(--accent)}
+  dl.glossar dd{margin:.2em 0 0; color:var(--ink)}
+
+  /* ---------- Quiz ---------- */
+  details.quiz{border:1px solid var(--line); border-radius:12px; margin:12px 0; background:#fff}
+  details.quiz summary{cursor:pointer; font-weight:700; padding:14px 18px; list-style:none}
+  details.quiz summary::-webkit-details-marker{display:none}
+  details.quiz summary::before{content:"❓ "}
+  details.quiz .a{padding:0 18px 16px; color:#0a8f63; font-weight:600}
+  details.quiz .a::before{content:"✓ "}
+
+  /* ---------- Hero ---------- */
+  .hero{background:linear-gradient(135deg,#eef2ff,#f5f3ff 60%,#ecfdf5); border:1px solid var(--line);
+    border-radius:24px; padding:50px 46px; margin:30px 0}
+  .hero .kicker{font-weight:800; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:14px}
+  .hero p.lead{font-size:23px; max-width:42ch}
+  .pill-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:22px}
+  .pill{background:#fff; border:1px solid var(--line); border-radius:999px; padding:8px 16px; font-size:15px; font-weight:600}
+
+  .legend{display:flex; flex-wrap:wrap; gap:14px; margin:22px 0}
+  .legend span{display:inline-flex; align-items:center; gap:8px; font-size:15px; font-weight:600}
+  .legend b{width:16px; height:16px; border-radius:5px; display:inline-block}
+
+  footer{max-width:1100px; margin:0 auto; padding:30px 20px 60px; color:var(--muted); font-size:15px; text-align:center}
+
+  /* ---------- Responsiv ---------- */
+  @media (max-width:680px){
+    body{font-size:17px}
+    .chapter{padding:26px 22px}
+    h1{font-size:32px} h2{font-size:24px}
+    .hero{padding:32px 24px}
+    .brand small{display:none}
+  }
+
+  /* ---------- Druck (Handout) ---------- */
+  @media print{
+    body{background:#fff; font-size:12pt}
+    .topbar,details.trainer,.hero .pill-row{display:none}
+    .chapter{box-shadow:none; border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
+    details.quiz,details.trainer{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAVIGATION ============ -->
+<header class="topbar">
+  <div class="inner">
+    <div class="brand">Git &amp; GitHub<small>Grundlagen für Einsteiger</small></div>
+    <nav class="toc" aria-label="Inhaltsverzeichnis">
+      <a href="#start">Start</a>
+      <a href="#kap1">1 · Problem</a>
+      <a href="#kap2">2 · Versionsverwaltung</a>
+      <a href="#kap3">3 · Git ≠ GitHub</a>
+      <a href="#kap4">4 · Repository</a>
+      <a href="#kap5">5 · Commit</a>
+      <a href="#kap6">6 · Drei Bereiche</a>
+      <a href="#kap7">7 · Branches</a>
+      <a href="#kap8">8 · Merge</a>
+      <a href="#kap9">9 · Clone/Push/Pull</a>
+      <a href="#kap10">10 · Pull Request</a>
+      <a href="#kap11">11 · Kommandozeile</a>
+      <a href="#kap12">12 · Mitmachen ✋</a>
+      <a href="#quiz">Quiz</a>
+      <a href="#glossar">Glossar</a>
+      <a href="#spick">Spickzettel</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section id="start" class="hero">
+  <div class="kicker">Schulung · für absolute Einsteiger</div>
+  <h1>Git &amp; GitHub – ganz ohne Vorkenntnisse</h1>
+  <p class="lead">Du bist kein Programmierer? Perfekt. In dieser Session lernst du in Ruhe, was diese
+  beiden Werkzeuge eigentlich sind – mit einfachen Bildern, Alltags&shy;vergleichen und einer ersten
+  eigenen Übung auf GitHub.</p>
+  <div class="pill-row">
+    <span class="pill">🐢 Langsam &amp; in Alltagssprache</span>
+    <span class="pill">🖼️ Mit einfachen Zeichnungen</span>
+    <span class="pill">🌐 Schwerpunkt: GitHub im Browser</span>
+    <span class="pill">✋ Mit Mitmach-Teil zum Schluss</span>
+  </div>
+
+  <div class="legend" style="margin-top:30px">
+    <span class="muted" style="width:100%; font-weight:700; color:var(--ink)">Diese drei Farben begleiten dich durch die ganze Schulung:</span>
+    <span><b style="background:var(--wd)"></b> Arbeitsverzeichnis (dein Schreibtisch)</span>
+    <span><b style="background:var(--stage)"></b> Staging (der Sammelkorb)</span>
+    <span><b style="background:var(--repo)"></b> Repository (das Fotoalbum)</span>
+    <span><b style="background:var(--hub)"></b> GitHub (das Internet)</span>
+  </div>
+
+  <details class="trainer">
+    <summary>🧑‍🏫 Trainer-Tipp · So nutzt du diese Seite</summary>
+    <div class="body">
+      <p>Scrolle in der Session Kapitel für Kapitel durch – jedes Kapitel ist eine kleine „Folie". Oben
+      kannst du mit der Leiste gezielt springen. Plane pro Kapitel 3–6 Minuten ein; bei 1–11 reine Erklärung,
+      bei 12 macht ihr es gemeinsam live.</p>
+      <p><b>Wichtig zu Beginn:</b> nimm den Leuten die Angst. Frag in die Runde: „Wer hat schon mal eine Datei
+      <code>…_final_v2_wirklich_final</code> genannt?" – fast alle melden sich. Genau dieses Problem löst Git.</p>
+      <p>Die Trainer-Tipps stehen nur für dich da und sind beim Ausdruck (Handout) automatisch ausgeblendet.</p>
+    </div>
+  </details>
+</section>
+
+
+<!-- ============ KAPITEL 1 ============ -->
+<section id="kap1" class="chapter">
+  <div class="chapter-num">Kapitel 1</div>
+  <h2>Das Problem: Arbeiten <em>ohne</em> Git</h2>
+  <p class="lead">Bevor wir erklären, was Git ist, schauen wir, warum es überhaupt erfunden wurde.
+  Wahrscheinlich kennst du das Chaos schon.</p>
+
+  <p>Stell dir vor, mehrere Leute arbeiten an derselben Datei – einem Angebot, einer Präsentation, einem Text.
+  Man schickt sie per E-Mail hin und her, jeder speichert seine eigene Version, und am Ende heißt sie:</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 280" role="img" aria-label="Viele durcheinanderliegende Dateiversionen mit Fragezeichen">
+      <!-- Doc-Karte als wiederverwendbares Symbol -->
+      <defs>
+        <g id="doc">
+          <rect width="190" height="118" rx="10" fill="#ffffff" stroke="#cfd3e6" stroke-width="2"/>
+          <path d="M170 0 h20 v20 z" fill="#e8eaf5"/>
+          <rect x="18" y="58" width="120" height="8" rx="4" fill="#e3e6ef"/>
+          <rect x="18" y="76" width="150" height="8" rx="4" fill="#eef0f7"/>
+          <rect x="18" y="94" width="95" height="8" rx="4" fill="#eef0f7"/>
+        </g>
+      </defs>
+      <use href="#doc" x="40" y="30" transform="rotate(-6 135 89)"/>
+      <use href="#doc" x="250" y="55" transform="rotate(4 345 114)"/>
+      <use href="#doc" x="470" y="22" transform="rotate(-3 565 81)"/>
+      <use href="#doc" x="600" y="120" transform="rotate(7 695 179)"/>
+
+      <text x="58" y="55" font-size="13" fill="#1f2433" font-weight="700">Angebot_final.docx</text>
+      <text x="268" y="80" font-size="13" fill="#1f2433" font-weight="700">Angebot_final_v2.docx</text>
+      <text x="486" y="47" font-size="13" fill="#1f2433" font-weight="700">Angebot_WIRKLICH_final.docx</text>
+      <text x="612" y="145" font-size="13" fill="#1f2433" font-weight="700">Angebot_final_ChefKorrektur.docx</text>
+
+      <text x="410" y="245" font-size="60" fill="#ef4444" font-weight="800" text-anchor="middle">?!?</text>
+      <text x="410" y="272" font-size="15" fill="#5b6172" text-anchor="middle">Welche ist jetzt die richtige Version?</text>
+    </svg>
+    <figcaption>Ohne ein gemeinsames System weiß niemand mehr, welche Datei die aktuelle ist.</figcaption>
+  </figure>
+
+  <p>Typische Probleme dabei:</p>
+  <ul>
+    <li>Niemand weiß sicher, welche Version die <strong>neueste</strong> ist.</li>
+    <li>Zwei Personen ändern gleichzeitig – eine&nbsp;Änderung <strong>überschreibt</strong> die andere.</li>
+    <li>Man kann nicht nachvollziehen, <strong>wer was wann und warum</strong> geändert hat.</li>
+    <li>Ein alter Stand lässt sich kaum sauber <strong>wiederherstellen</strong>.</li>
+  </ul>
+
+  <div class="callout miss">
+    <span class="tag">⚠️ Häufiges Missverständnis</span>
+    <p>„Git ist nur was für Programmierer." – Nein. Git löst ein <em>ganz allgemeines</em> Problem: viele
+    Versionen, viele Menschen, eine gemeinsame Wahrheit. Es wird vor allem für Programmcode benutzt, aber das Prinzip gilt für jede Art von Text&shy;dateien.</p>
+  </div>
+
+  <details class="trainer">
+    <summary>🧑‍🏫 Trainer-Tipp</summary>
+    <div class="body"><p>Lass die Teilnehmer kurz eigene Horror-Geschichten erzählen („zwei Leute im selben Excel…").
+    Das holt alle ab und macht sofort klar, <em>wofür</em> das Werkzeug gut ist – bevor ein einziger Fachbegriff fällt.</p></div>
+  </details>
+</section>
+
+
+<!-- ============ KAPITEL 2 ============ -->
+<section id="kap2" class="chapter">
+  <div class="chapter-num">Kapitel 2</div>
+  <h2>Die Lösung: Was ist „Versionsverwaltung"?</h2>
+  <p class="lead">Eine Versionsverwaltung ist ein Werkzeug, das sich <strong>jede Version</strong> deiner Dateien
+  merkt – und dazu, wer sie wann und warum geändert hat.</p>
+
+  <div class="callout analogy">
+    <span class="tag">💡 Analogie</span>
+    <p>Denk an die <strong>Speicherstände in einem Videospiel</strong> oder an ein <strong>Logbuch</strong>:
+    Du kannst jederzeit zu einem früheren Punkt zurückspringen, und es ist genau festgehalten, was passiert ist.
+    Oder: wie „Änderungen nachverfolgen" in Word – aber für ein ganzes Projekt und für ein ganzes Team.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 200" role="img" aria-label="Ein Zeitstrahl mit mehreren gespeicherten Ständen">
+      <line x1="50" y1="110" x2="770" y2="110" stroke="#cfd3e6" stroke-width="4"/>
+      <!-- Punkte -->
+      <g font-size="13" fill="#5b6172" text-anchor="middle">
+        <circle cx="140" cy="110" r="16" fill="#10b981"/><text x="140" y="150">Stand 1</text>
+        <circle cx="320" cy="110" r="16" fill="#10b981"/><text x="320" y="150">Stand 2</text>
+        <circle cx="500" cy="110" r="16" fill="#10b981"/><text x="500" y="150">Stand 3</text>
+        <circle cx="680" cy="110" r="16" fill="#10b981"/><text x="680" y="150">Stand 4 (jetzt)</text>
+      </g>
+      <g font-size="12" fill="#1f2433" text-anchor="middle">
+        <text x="140" y="74">„angelegt"</text>
+        <text x="320" y="74">„Preise ergänzt"</text>
+        <text x="500" y="74">„Chef-Korrektur"</text>
+        <text x="680" y="74">„Tippfehler"</text>
+      </g>
+      <text x="770" y="100" font-size="22">→</text>
+      <text x="410" y="190" font-size="14" fill="#5b6172" text-anchor="middle">Die Zeit läuft nach rechts – jeder Punkt ist ein gespeicherter Stand.</text>
+    </svg>
+    <figcaption>Statt vieler kryptisch benannter Dateien gibt es <em>eine</em> Datei mit einer lückenlosen Historie.</figcaption>
+  </figure>
+
+  <p>Mit so einem Werkzeug kannst du:</p>
+  <ul>
+    <li>zu jedem alten Stand <strong>zurückspringen</strong>,</li>
+    <li>genau sehen, <strong>was sich von Stand zu Stand geändert</strong> hat,</li>
+    <li>und mit anderen arbeiten, ohne euch gegenseitig zu überschreiben.</li>
+  </ul>
+
+  <p><strong>Git</strong> ist das mit Abstand bekannteste Werkzeug dieser Art. Schauen wir es uns genauer an –
+  und klären als Erstes den Unterschied, der am meisten Verwirrung stiftet.</p>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p>Versionsverwaltung = ein „Gedächtnis" für deine Dateien. <strong>Git</strong> ist das Werkzeug, das dieses Gedächtnis führt.</p>
+  </div>
+</section>
+
+
+<!-- ============ KAPITEL 3 ============ -->
+<section id="kap3" class="chapter">
+  <div class="chapter-num">Kapitel 3</div>
+  <h2>Der wichtigste Unterschied: Git ≠ GitHub</h2>
+  <p class="lead">Diese beiden werden ständig verwechselt. Wenn du nur eine Sache aus dieser Schulung mitnimmst,
+  dann diese:</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 300" role="img" aria-label="Laptop mit Git links, GitHub-Wolke rechts, Pfeile dazwischen">
+      <!-- Laptop -->
+      <g>
+        <rect x="70" y="80" width="220" height="140" rx="12" fill="#fff" stroke="#cfd3e6" stroke-width="2"/>
+        <rect x="90" y="100" width="180" height="100" rx="6" fill="#1e2233"/>
+        <rect x="55" y="220" width="250" height="16" rx="6" fill="#cfd3e6"/>
+        <text x="180" y="150" fill="#27c93f" font-size="22" font-family="monospace" text-anchor="middle">git</text>
+        <text x="180" y="178" fill="#8b91a7" font-size="12" font-family="monospace" text-anchor="middle">$ commit ✓</text>
+      </g>
+      <text x="180" y="268" font-size="17" font-weight="800" fill="#1f2433" text-anchor="middle">Git</text>
+      <text x="180" y="290" font-size="13.5" fill="#5b6172" text-anchor="middle">das Werkzeug · auf deinem Rechner · offline</text>
+
+      <!-- Pfeile -->
+      <g stroke="#3b82f6" stroke-width="3" fill="none">
+        <path d="M320 120 H470" marker-end="url(#ar)"/>
+        <path d="M470 180 H320" marker-end="url(#ar)"/>
+      </g>
+      <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#3b82f6"/></marker></defs>
+      <text x="395" y="110" font-size="12.5" fill="#3b82f6" text-anchor="middle" font-weight="700">hochladen</text>
+      <text x="395" y="202" font-size="12.5" fill="#3b82f6" text-anchor="middle" font-weight="700">herunterladen</text>
+
+      <!-- Cloud -->
+      <g>
+        <path d="M560 150 a40 40 0 0 1 78 -12 a34 34 0 0 1 60 22 a32 32 0 0 1 -8 63 H575 a35 35 0 0 1 -15 -73 z"
+              fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
+        <text x="632" y="158" font-size="24" text-anchor="middle">🐙</text>
+        <text x="632" y="185" font-size="14" fill="#3b82f6" font-weight="800" text-anchor="middle">GitHub</text>
+      </g>
+      <text x="632" y="268" font-size="17" font-weight="800" fill="#1f2433" text-anchor="middle">GitHub</text>
+      <text x="632" y="290" font-size="13.5" fill="#5b6172" text-anchor="middle">die Webseite · im Internet · fürs Team</text>
+    </svg>
+    <figcaption>Git lebt auf deinem Computer. GitHub ist ein Ort im Internet, an dem dein Projekt für alle liegt.</figcaption>
+  </figure>
+
+  <table>
+    <tr><th></th><th>Git</th><th>GitHub</th></tr>
+    <tr><td><strong>Was ist es?</strong></td><td>Ein Werkzeug / Programm</td><td>Eine Webseite / Plattform</td></tr>
+    <tr><td><strong>Wo läuft es?</strong></td><td>Auf deinem eigenen Rechner</td><td>Im Internet (in der „Cloud")</td></tr>
+    <tr><td><strong>Internet nötig?</strong></td><td>Nein, geht auch offline</td><td>Ja, es ist eine Webseite</td></tr>
+    <tr><td><strong>Wofür?</strong></td><td>Versionen merken</td><td>Projekte teilen &amp; gemeinsam dran arbeiten</td></tr>
+  </table>
+
+  <div class="callout analogy">
+    <span class="tag">💡 Analogie</span>
+    <p>Es ist wie bei <strong>E-Mail</strong> und <strong>Gmail</strong>: „E-Mail" ist die Technik, „Gmail" ist
+    nur <em>ein Anbieter</em>, bei dem du sie nutzt. Genauso ist <strong>Git</strong> die Technik – und
+    <strong>GitHub</strong> einer von mehreren Anbietern. Andere Anbieter sind z.&nbsp;B. GitLab oder Bitbucket.</p>
+  </div>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p><strong>Git</strong> = das Werkzeug auf deinem Rechner. <strong>GitHub</strong> = der gemeinsame Treffpunkt im Internet, wo das Projekt liegt.</p>
+  </div>
+
+  <details class="trainer">
+    <summary>🧑‍🏫 Trainer-Tipp</summary>
+    <div class="body"><p>Die E-Mail/Gmail-Analogie zündet bei Nicht-Devs fast immer. Wiederhol sie ruhig später nochmal.
+    Wenn jemand fragt „brauche ich beides?": In dieser Firma arbeitet ihr meist über GitHub im Browser – Git läuft im Hintergrund mit, ohne dass man es direkt sieht.</p></div>
+  </details>
+</section>
+
+
+<!-- ============ KAPITEL 4 ============ -->
+<section id="kap4" class="chapter">
+  <div class="chapter-num">Kapitel 4</div>
+  <h2>Das Repository – kurz „Repo"</h2>
+  <p class="lead">Ein Repository ist einfach dein <strong>Projektordner – aber mit Gedächtnis</strong>.
+  Es enthält deine Dateien <em>und</em> die komplette Geschichte aller Änderungen.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 250" role="img" aria-label="Lokales Repository auf dem Laptop und Remote-Repository in der Wolke">
+      <!-- lokal -->
+      <g>
+        <path d="M120 90 h70 l14 18 h120 v92 a8 8 0 0 1 -8 8 H120 a8 8 0 0 1 -8 -8 V98 a8 8 0 0 1 8 -8 z"
+              fill="#ecfdf5" stroke="#10b981" stroke-width="2.5"/>
+        <circle cx="300" cy="98" r="20" fill="#fff" stroke="#10b981" stroke-width="2.5"/>
+        <path d="M300 88 v10 l7 4" stroke="#10b981" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <text x="210" y="160" font-size="15" fill="#0a8f63" font-weight="800" text-anchor="middle">mein-projekt</text>
+        <text x="210" y="182" font-size="12" fill="#5b6172" text-anchor="middle">Dateien + ganze Historie</text>
+      </g>
+      <text x="210" y="232" font-size="14.5" fill="#1f2433" text-anchor="middle" font-weight="700">Lokales Repo (auf deinem Rechner)</text>
+
+      <!-- Sync-Pfeile -->
+      <g stroke="#3b82f6" stroke-width="3" fill="none">
+        <path d="M380 120 H520" marker-end="url(#ar2)"/>
+        <path d="M520 160 H380" marker-end="url(#ar2)"/>
+      </g>
+      <defs><marker id="ar2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#3b82f6"/></marker></defs>
+      <text x="450" y="108" font-size="12.5" fill="#3b82f6" text-anchor="middle" font-weight="700">synchronisieren</text>
+
+      <!-- remote -->
+      <g>
+        <path d="M560 150 a40 40 0 0 1 78 -12 a34 34 0 0 1 60 22 a32 32 0 0 1 -8 63 H575 a35 35 0 0 1 -15 -73 z"
+              fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
+        <text x="635" y="165" font-size="15" fill="#3b82f6" font-weight="800" text-anchor="middle">mein-projekt</text>
+      </g>
+      <text x="635" y="232" font-size="14.5" fill="#1f2433" text-anchor="middle" font-weight="700">Remote-Repo (auf GitHub)</text>
+    </svg>
+    <figcaption>Dasselbe Projekt gibt es lokal (bei dir) und „remote" (auf GitHub). Beide hält man synchron.</figcaption>
+  </figure>
+
+  <p>Wenn du auf GitHub ein neues Projekt anlegst, legst du genau so ein Repository an. Es kann sein:</p>
+  <ul>
+    <li><strong>privat</strong> – nur du (und eingeladene Personen) seht es, oder</li>
+    <li><strong>öffentlich</strong> – jeder im Internet kann es ansehen.</li>
+  </ul>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p>Ein <strong>Repository</strong> ist ein Projektordner, der sich seine komplette Vergangenheit merkt. „Lokal" = bei dir, „Remote" = auf GitHub.</p>
+  </div>
+</section>
+
+
+<!-- ============ KAPITEL 5 ============ -->
+<section id="kap5" class="chapter">
+  <div class="chapter-num">Kapitel 5</div>
+  <h2>Der Commit – ein gespeicherter Schnappschuss</h2>
+  <p class="lead">Ein <strong>Commit</strong> ist ein gespeicherter Stand deines Projekts zu einem bestimmten
+  Moment – zusammen mit einer kurzen Notiz, <em>was</em> du geändert hast und <em>warum</em>.</p>
+
+  <div class="callout analogy">
+    <span class="tag">💡 Analogie</span>
+    <p>Ein Commit ist wie ein <strong>Foto mit Bildunterschrift</strong>: Es hält den Moment fest und sagt in
+    einem Satz, was darauf passiert. Diese Bildunterschrift nennt man die <strong>Commit-Nachricht</strong>.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 210" role="img" aria-label="Drei Commits als Fotokarten auf einer Linie">
+      <line x1="60" y1="95" x2="760" y2="95" stroke="#cfd3e6" stroke-width="4"/>
+      <g>
+        <!-- Karte 1 -->
+        <circle cx="170" cy="95" r="14" fill="#10b981"/>
+        <rect x="110" y="120" width="160" height="60" rx="9" fill="#fff" stroke="#10b981" stroke-width="2"/>
+        <text x="190" y="143" font-size="13" fill="#1f2433" font-weight="700" text-anchor="middle">„Projekt angelegt"</text>
+        <text x="190" y="165" font-size="11" fill="#5b6172" text-anchor="middle" font-family="monospace">a1b2c3 · Anna</text>
+        <!-- Karte 2 -->
+        <circle cx="410" cy="95" r="14" fill="#10b981"/>
+        <rect x="350" y="120" width="160" height="60" rx="9" fill="#fff" stroke="#10b981" stroke-width="2"/>
+        <text x="430" y="143" font-size="13" fill="#1f2433" font-weight="700" text-anchor="middle">„Texte überarbeitet"</text>
+        <text x="430" y="165" font-size="11" fill="#5b6172" text-anchor="middle" font-family="monospace">d4e5f6 · Ben</text>
+        <!-- Karte 3 -->
+        <circle cx="650" cy="95" r="14" fill="#10b981"/>
+        <rect x="590" y="120" width="160" height="60" rx="9" fill="#fff" stroke="#10b981" stroke-width="2"/>
+        <text x="670" y="143" font-size="13" fill="#1f2433" font-weight="700" text-anchor="middle">„Bilder ergänzt"</text>
+        <text x="670" y="165" font-size="11" fill="#5b6172" text-anchor="middle" font-family="monospace">7g8h9i · Anna</text>
+      </g>
+      <text x="60" y="45" font-size="14" fill="#5b6172">früher</text>
+      <text x="760" y="45" font-size="14" fill="#5b6172" text-anchor="end">jetzt →</text>
+    </svg>
+    <figcaption>Jeder Commit hat eine Nachricht, einen Autor und eine eindeutige Kennung (z.&nbsp;B. <code>a1b2c3</code>).</figcaption>
+  </figure>
+
+  <p>Die Aneinanderreihung aller Commits ist die <strong>Historie</strong> deines Projekts. Du kannst sie jederzeit
+  durchblättern wie ein Tagebuch – und sehen, wer wann was gemacht hat.</p>
+
+  <div class="callout miss">
+    <span class="tag">⚠️ Häufiges Missverständnis</span>
+    <p>Ein Commit ist <em>nicht</em> dasselbe wie „Datei speichern". Speichern macht dein Programm sowieso ständig.
+    Ein Commit ist ein <strong>bewusster</strong> Schnappschuss, den du mit einer Nachricht festhältst – etwa
+    „so, dieser Abschnitt ist fertig".</p>
+  </div>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p><strong>Commit</strong> = ein bewusst gespeicherter Stand + eine kurze Nachricht „was &amp; warum".</p>
+  </div>
+
+  <details class="trainer">
+    <summary>🧑‍🏫 Trainer-Tipp</summary>
+    <div class="body"><p>Betone die <em>Nachricht</em>. Gute Commit-Nachrichten sind das, was Historie überhaupt lesbar macht.
+    Gegenbeispiel zum Schmunzeln: Commits mit der Nachricht „asdf" oder „Änderung" – damit kann später niemand etwas anfangen.</p></div>
+  </details>
+</section>
+
+
+<!-- ============ KAPITEL 6 ============ -->
+<section id="kap6" class="chapter">
+  <div class="chapter-num">Kapitel 6 · Kernmodell</div>
+  <h2>Die drei Bereiche: vom Schreibtisch ins Fotoalbum</h2>
+  <p class="lead">Damit aus einer Änderung ein Commit wird, durchläuft sie drei Stationen. Das ist <em>das</em>
+  Herzstück von Git. Wir gehen es ganz langsam durch.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 840 300" role="img" aria-label="Drei Bereiche: Arbeitsverzeichnis, Staging, Repository, eine Datei wandert hindurch">
+      <!-- Zone 1 -->
+      <rect x="20" y="60" width="230" height="180" rx="14" fill="#fff7ed" stroke="#f59e0b" stroke-width="2.5"/>
+      <text x="135" y="90" font-size="15" font-weight="800" fill="#b9710a" text-anchor="middle">1 · Arbeitsverzeichnis</text>
+      <text x="135" y="112" font-size="12.5" fill="#5b6172" text-anchor="middle">dein Schreibtisch</text>
+      <text x="135" y="175" font-size="40" text-anchor="middle">📝</text>
+      <text x="135" y="215" font-size="12.5" fill="#5b6172" text-anchor="middle">hier änderst du Dateien</text>
+
+      <!-- Zone 2 -->
+      <rect x="305" y="60" width="230" height="180" rx="14" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2.5"/>
+      <text x="420" y="90" font-size="15" font-weight="800" fill="#6d28d9" text-anchor="middle">2 · Staging</text>
+      <text x="420" y="112" font-size="12.5" fill="#5b6172" text-anchor="middle">der Sammelkorb</text>
+      <text x="420" y="175" font-size="40" text-anchor="middle">🧺</text>
+      <text x="420" y="215" font-size="12.5" fill="#5b6172" text-anchor="middle">was soll in den Schnappschuss?</text>
+
+      <!-- Zone 3 -->
+      <rect x="590" y="60" width="230" height="180" rx="14" fill="#ecfdf5" stroke="#10b981" stroke-width="2.5"/>
+      <text x="705" y="90" font-size="15" font-weight="800" fill="#0a8f63" text-anchor="middle">3 · Repository</text>
+      <text x="705" y="112" font-size="12.5" fill="#5b6172" text-anchor="middle">das Fotoalbum</text>
+      <text x="705" y="175" font-size="40" text-anchor="middle">📚</text>
+      <text x="705" y="215" font-size="12.5" fill="#5b6172" text-anchor="middle">Schnappschuss für immer drin</text>
+
+      <!-- Pfeile -->
+      <defs><marker id="ar3" markerWidth="12" markerHeight="12" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#4f46e5"/></marker></defs>
+      <g stroke="#4f46e5" stroke-width="3" fill="none">
+        <path d="M255 280 H300" marker-end="url(#ar3)"/>
+        <path d="M540 280 H585" marker-end="url(#ar3)"/>
+      </g>
+      <text x="278" y="272" font-size="12.5" fill="#4f46e5" text-anchor="middle" font-weight="800">add</text>
+      <text x="563" y="272" font-size="12.5" fill="#4f46e5" text-anchor="middle" font-weight="800">commit</text>
+    </svg>
+    <figcaption>Eine Änderung wandert: <b style="color:var(--wd)">ändern</b> → mit <code>add</code> in den Korb → mit <code>commit</code> ins Album.</figcaption>
+  </figure>
+
+  <h3>Schritt für Schritt</h3>
+  <ol>
+    <li><strong>Arbeitsverzeichnis (Schreibtisch):</strong> Hier bearbeitest du deine Dateien ganz normal.</li>
+    <li><strong>Staging / Sammelkorb:</strong> Du legst <em>gezielt</em> die Änderungen hinein, die in den nächsten
+    Schnappschuss sollen. (So kannst du z.&nbsp;B. drei von fünf Änderungen festhalten und zwei noch liegen lassen.)</li>
+    <li><strong>Repository / Fotoalbum:</strong> Mit dem Commit wird aus dem Korb ein fester Schnappschuss in der Historie.</li>
+  </ol>
+
+  <div class="callout analogy">
+    <span class="tag">💡 Analogie</span>
+    <p><strong>Ein Paket packen:</strong> Auf dem Schreibtisch liegen viele Dinge (Arbeitsverzeichnis). Du legst
+    ausgewählte Dinge in den Karton (Staging). Dann klebst du den Karton zu und schickst ihn ins Archiv – fertig,
+    nicht mehr änderbar (Commit ins Repository).</p>
+  </div>
+
+  <div class="callout miss">
+    <span class="tag">⚠️ Gut zu wissen für GitHub im Browser</span>
+    <p>Wenn du direkt auf der GitHub-Webseite arbeitest, passieren „Sammelkorb" und „Foto machen" in <strong>einem
+    Schritt</strong>: Du klickst „Commit changes" und gibst die Nachricht ein. Das Modell mit den drei Bereichen
+    läuft trotzdem im Hintergrund – gut, es zu kennen, damit dich später kein Begriff überrascht.</p>
+  </div>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p>ändern <span style="color:var(--wd)">●</span> → <strong>add</strong> in den Sammelkorb <span style="color:var(--stage)">●</span> → <strong>commit</strong> ins Album <span style="color:var(--repo)">●</span>.</p>
+  </div>
+
+  <details class="trainer">
+    <summary>🧑‍🏫 Trainer-Tipp</summary>
+    <div class="body"><p>Das ist das schwierigste Kapitel für Einsteiger – nimm dir hier am meisten Zeit. Zeig die
+    Paket-Analogie mit den Händen. Wer das Staging einmal verstanden hat, versteht später Push/Pull fast von allein.</p></div>
+  </details>
+</section>
+
+
+<!-- ============ KAPITEL 7 ============ -->
+<section id="kap7" class="chapter">
+  <div class="chapter-num">Kapitel 7</div>
+  <h2>Branches – parallel arbeiten ohne Chaos</h2>
+  <p class="lead">Ein <strong>Branch</strong> (deutsch: „Zweig") ist eine parallele Arbeitskopie. Du kannst darin
+  etwas ausprobieren, <em>ohne</em> die offizielle Version kaputtzumachen.</p>
+
+  <div class="callout analogy">
+    <span class="tag">💡 Analogie</span>
+    <p>Wie ein <strong>Sandkasten</strong> oder ein <strong>Paralleluniversum</strong>: Du baust in Ruhe an deiner
+    Idee. Klappt sie, holst du sie zurück in die Hauptversion. Klappt sie nicht, wirfst du den Zweig einfach weg –
+    die Hauptversion hat nie etwas davon mitbekommen.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 230" role="img" aria-label="Hauptlinie main mit einem abzweigenden und wieder zurückführenden Branch">
+      <!-- main-Linie (durchgehend) -->
+      <line x1="60" y1="160" x2="760" y2="160" stroke="#10b981" stroke-width="5"/>
+      <!-- Branch: symmetrisch hoch, gerade, symmetrisch zurück -->
+      <path d="M230,160 C 285,160 285,60 340,60 H520 C 575,60 575,160 630,160"
+            fill="none" stroke="#8b5cf6" stroke-width="5"/>
+      <!-- Branch-Punkte (genau auf der waagrechten Linie y=60) -->
+      <g fill="#8b5cf6">
+        <circle cx="410" cy="60" r="13"/>
+        <circle cx="510" cy="60" r="13"/>
+      </g>
+      <!-- main-Punkte (über der Linie, inkl. Abzweig- und Rückführpunkt) -->
+      <g fill="#10b981">
+        <circle cx="120" cy="160" r="13"/>
+        <circle cx="230" cy="160" r="13"/>
+        <circle cx="630" cy="160" r="13"/>
+        <circle cx="720" cy="160" r="13"/>
+      </g>
+      <!-- Beschriftung -->
+      <text x="460" y="38" font-size="15" fill="#6d28d9" font-weight="800" text-anchor="middle">Branch „neue-idee"</text>
+      <text x="60" y="200" font-size="14" fill="#0a8f63" font-weight="800">main · die offizielle Version</text>
+      <text x="268" y="128" font-size="12.5" fill="#6d28d9" text-anchor="middle">abzweigen</text>
+      <text x="592" y="128" font-size="12.5" fill="#6d28d9" text-anchor="middle">zurückführen</text>
+    </svg>
+    <figcaption>Aus <code>main</code> zweigt ein eigener Branch ab, sammelt ein paar Commits – und fließt später wieder zurück.</figcaption>
+  </figure>
+
+  <p>Der Hauptzweig heißt fast immer <strong><code>main</code></strong> (früher oft <code>master</code>) – das ist
+  die „gilt für alle"-Version. Branches benutzt man, um:</p>
+  <ul>
+    <li>eine neue Idee oder ein Feature in Ruhe auszuprobieren,</li>
+    <li>mit mehreren Leuten gleichzeitig an verschiedenen Dingen zu arbeiten,</li>
+    <li>die Hauptversion immer funktionsfähig zu halten.</li>
+  </ul>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p>Ein <strong>Branch</strong> ist ein sicherer Spiel-Zweig neben der Hauptversion <code>main</code>. Experimentieren erlaubt – ohne Risiko.</p>
+  </div>
+</section>
+
+
+<!-- ============ KAPITEL 8 ============ -->
+<section id="kap8" class="chapter">
+  <div class="chapter-num">Kapitel 8</div>
+  <h2>Merge – Zweige wieder zusammenführen</h2>
+  <p class="lead"><strong>Mergen</strong> heißt: die Änderungen aus einem Branch zurück in einen anderen
+  (meist <code>main</code>) holen. Aus zwei Linien wird wieder eine.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 230" role="img" aria-label="Zwei Zweige fließen in einem Merge-Punkt zusammen">
+      <!-- main-Linie (durchgehend) -->
+      <line x1="60" y1="160" x2="760" y2="160" stroke="#10b981" stroke-width="5"/>
+      <!-- Branch: symmetrisch hoch, gerade, symmetrisch in den Merge-Punkt -->
+      <path d="M200,160 C 255,160 255,60 310,60 H520 C 575,60 575,160 620,160"
+            fill="none" stroke="#8b5cf6" stroke-width="5"/>
+      <!-- Branch-Punkte (genau auf der waagrechten Linie y=60) -->
+      <g fill="#8b5cf6">
+        <circle cx="380" cy="60" r="13"/>
+        <circle cx="470" cy="60" r="13"/>
+      </g>
+      <!-- main-Punkte -->
+      <g fill="#10b981">
+        <circle cx="110" cy="160" r="13"/>
+        <circle cx="200" cy="160" r="13"/>
+        <circle cx="720" cy="160" r="13"/>
+      </g>
+      <!-- Merge-Knoten (sitzt exakt am Ende von main-Linie und Branch) -->
+      <circle cx="620" cy="160" r="18" fill="#4f46e5"/>
+      <text x="620" y="166" font-size="16" fill="#fff" text-anchor="middle">⇄</text>
+      <!-- Beschriftung -->
+      <text x="415" y="38" font-size="15" fill="#6d28d9" font-weight="800" text-anchor="middle">Branch</text>
+      <text x="80" y="200" font-size="14" fill="#0a8f63" font-weight="800">main</text>
+      <text x="620" y="202" font-size="13.5" fill="#4f46e5" font-weight="800" text-anchor="middle">Merge</text>
+      <text x="620" y="221" font-size="12.5" fill="#5b6172" text-anchor="middle">die Zweige sind vereint</text>
+    </svg>
+    <figcaption>Beim Merge werden die Commits beider Zweige zu einer gemeinsamen Geschichte verbunden.</figcaption>
+  </figure>
+
+  <h3>Und was ist ein „Merge-Konflikt"?</h3>
+  <p>Meistens klappt das Zusammenführen ganz automatisch. Ein <strong>Konflikt</strong> entsteht nur, wenn
+  <em>zwei Leute genau dieselbe Zeile</em> unterschiedlich geändert haben. Dann kann Git nicht raten, welche
+  Version stimmt – und fragt einen Menschen: „Welche Variante soll gelten?"</p>
+
+  <div class="callout miss">
+    <span class="tag">⚠️ Keine Angst vor Konflikten</span>
+    <p>Ein Merge-Konflikt ist <strong>völlig normal</strong> und kein Fehler. Git zeigt dir genau die Stelle und
+    beide Varianten; du wählst aus oder kombinierst sie. Danach ist alles wieder gut.</p>
+  </div>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p><strong>Merge</strong> = Zweige vereinen. <strong>Konflikt</strong> = dieselbe Stelle doppelt geändert, ein Mensch entscheidet.</p>
+  </div>
+</section>
+
+
+<!-- ============ KAPITEL 9 ============ -->
+<section id="kap9" class="chapter">
+  <div class="chapter-num">Kapitel 9 · Zusammenarbeit</div>
+  <h2>Clone, Push und Pull</h2>
+  <p class="lead">Jetzt verbinden wir „bei dir" (lokal) mit „auf GitHub" (remote). Dafür gibt es genau drei
+  Worte, die du dir merken solltest.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 300" role="img" aria-label="Laptop und GitHub-Wolke mit den Pfeilen Clone, Push und Pull">
+      <!-- Laptop -->
+      <rect x="80" y="110" width="200" height="120" rx="10" fill="#fff" stroke="#cfd3e6" stroke-width="2"/>
+      <rect x="98" y="128" width="164" height="84" rx="5" fill="#1e2233"/>
+      <rect x="66" y="230" width="228" height="14" rx="6" fill="#cfd3e6"/>
+      <text x="180" y="178" fill="#27c93f" font-size="16" font-family="monospace" text-anchor="middle">dein Laptop</text>
+      <text x="180" y="282" font-size="14" font-weight="800" fill="#1f2433" text-anchor="middle">Lokal (bei dir)</text>
+
+      <!-- cloud -->
+      <path d="M560 150 a40 40 0 0 1 78 -12 a34 34 0 0 1 60 22 a32 32 0 0 1 -8 63 H575 a35 35 0 0 1 -15 -73 z"
+            fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
+      <text x="632" y="160" font-size="26" text-anchor="middle">🐙</text>
+      <text x="632" y="186" font-size="14" fill="#3b82f6" font-weight="800" text-anchor="middle">GitHub</text>
+      <text x="632" y="282" font-size="14" font-weight="800" fill="#1f2433" text-anchor="middle">Remote (Internet)</text>
+
+      <defs><marker id="arp" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6 Z" fill="currentColor"/></marker></defs>
+
+      <!-- clone -->
+      <g color="#8b5cf6" stroke="#8b5cf6" stroke-width="3" fill="none">
+        <path d="M555 120 H290" marker-end="url(#arp)"/>
+      </g>
+      <text x="420" y="108" font-size="13.5" fill="#6d28d9" font-weight="800" text-anchor="middle">clone – erste Kopie holen</text>
+
+      <!-- push -->
+      <g color="#10b981" stroke="#10b981" stroke-width="3" fill="none">
+        <path d="M290 165 H555" marker-end="url(#arp)"/>
+      </g>
+      <text x="420" y="158" font-size="13.5" fill="#0a8f63" font-weight="800" text-anchor="middle">push – hochladen ▲</text>
+
+      <!-- pull -->
+      <g color="#f59e0b" stroke="#f59e0b" stroke-width="3" fill="none">
+        <path d="M555 205 H290" marker-end="url(#arp)"/>
+      </g>
+      <text x="420" y="225" font-size="13.5" fill="#b9710a" font-weight="800" text-anchor="middle">pull – herunterladen ▼</text>
+    </svg>
+    <figcaption>Drei Bewegungen zwischen deinem Rechner und GitHub.</figcaption>
+  </figure>
+
+  <table>
+    <tr><th>Wort</th><th>Bedeutung</th><th>In einem Satz</th></tr>
+    <tr><td><strong>Clone</strong></td><td>Erste Kopie holen</td><td>„Ich hole mir das Projekt von GitHub das erste Mal auf meinen Rechner."</td></tr>
+    <tr><td><strong>Push</strong></td><td>Hochladen</td><td>„Ich schicke meine Commits hinauf zu GitHub, damit andere sie haben."</td></tr>
+    <tr><td><strong>Pull</strong></td><td>Herunterladen</td><td>„Ich hole mir die neuesten Änderungen der anderen von GitHub herunter."</td></tr>
+  </table>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p><strong>Push = hoch</strong> (geben), <strong>Pull = runter</strong> (holen), <strong>Clone</strong> = die allererste Kopie.</p>
+  </div>
+
+  <details class="trainer">
+    <summary>🧑‍🏫 Trainer-Tipp</summary>
+    <div class="body"><p>Eselsbrücke laut mitsprechen lassen: „<b>Push</b>en heißt drücken – nach oben. <b>Pull</b>en heißt ziehen – zu mir herunter."
+    Bei reiner Browser-Arbeit auf GitHub macht man Push/Pull oft gar nicht selbst – das ist trotzdem das Vokabular, das überall fällt.</p></div>
+  </details>
+</section>
+
+
+<!-- ============ KAPITEL 10 ============ -->
+<section id="kap10" class="chapter">
+  <div class="chapter-num">Kapitel 10 · Der wichtigste GitHub-Ablauf</div>
+  <h2>Pull Request &amp; Review – so arbeitet ein Team</h2>
+  <p class="lead">Das ist der Ablauf, den du bei GitHub am häufigsten sehen wirst. Ein <strong>Pull Request</strong>
+  (kurz „PR") heißt im Grunde: <em>„Ich schlage diese Änderung vor – schaut sie euch bitte an, bevor sie offiziell wird."</em></p>
+
+  <div class="callout analogy">
+    <span class="tag">💡 Analogie</span>
+    <p>Wie <strong>„Änderungen vorschlagen" in Google Docs</strong>: Du änderst nicht einfach wild im Original,
+    sondern machst einen Vorschlag. Eine Kollegin schaut drauf, kommentiert, und erst wenn alle einverstanden
+    sind, wird der Vorschlag übernommen.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 820 220" role="img" aria-label="Ablauf von Branch über Pull Request und Review bis zum Merge in main">
+      <defs><marker id="arf" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#4f46e5"/></marker></defs>
+
+      <!-- Schritt-Boxen -->
+      <g font-size="13" text-anchor="middle">
+        <rect x="20" y="80" width="150" height="64" rx="12" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+        <text x="95" y="108" font-weight="800" fill="#6d28d9">1 · Branch</text>
+        <text x="95" y="128" fill="#5b6172">ändern in Ruhe</text>
+
+        <rect x="215" y="80" width="150" height="64" rx="12" fill="#eef2ff" stroke="#4f46e5" stroke-width="2"/>
+        <text x="290" y="108" font-weight="800" fill="#4f46e5">2 · Pull Request</text>
+        <text x="290" y="128" fill="#5b6172">„bitte ansehen"</text>
+
+        <rect x="410" y="80" width="150" height="64" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+        <text x="485" y="108" font-weight="800" fill="#3b82f6">3 · Review</text>
+        <text x="485" y="128" fill="#5b6172">prüfen &amp; kommentieren</text>
+
+        <rect x="605" y="80" width="150" height="64" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+        <text x="680" y="108" font-weight="800" fill="#0a8f63">4 · Merge</text>
+        <text x="680" y="128" fill="#5b6172">in main übernommen</text>
+      </g>
+
+      <g stroke="#4f46e5" stroke-width="3" fill="none">
+        <path d="M170 112 H213" marker-end="url(#arf)"/>
+        <path d="M365 112 H408" marker-end="url(#arf)"/>
+        <path d="M560 112 H603" marker-end="url(#arf)"/>
+      </g>
+      <text x="410" y="185" font-size="13" fill="#5b6172" text-anchor="middle">Erst nach dem Review (oft mit ✅-Freigabe) wandert die Änderung in die offizielle Version.</text>
+    </svg>
+    <figcaption>Branch → Pull Request → Review → Merge: der Standard-Weg, wie Änderungen sicher in <code>main</code> kommen.</figcaption>
+  </figure>
+
+  <p>Im Pull Request sieht man genau, <strong>was sich ändert</strong> (alte vs. neue Zeilen, grün/rot markiert),
+  kann darunter <strong>diskutieren</strong>, Änderungen anfordern und am Ende auf <strong>„Merge"</strong> klicken.</p>
+
+  <h3>Und „Issues"?</h3>
+  <p>Ein <strong>Issue</strong> ist einfach ein <strong>Ticket / eine Notiz</strong> auf GitHub: „Hier ist ein Fehler",
+  „das wünschen wir uns", „das ist noch zu tun". Issues sind die To-do-Liste des Projekts – Pull Requests sind
+  die konkreten Lösungen dazu.</p>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p><strong>Pull Request</strong> = ein Änderungs-Vorschlag, der erst geprüft und dann übernommen (gemergt) wird. <strong>Issue</strong> = ein Ticket auf der To-do-Liste.</p>
+  </div>
+
+  <details class="trainer">
+    <summary>🧑‍🏫 Trainer-Tipp</summary>
+    <div class="body"><p>Das ist der praxisrelevanteste Punkt für Nicht-Devs – hier verbringen sie später ihre Zeit.
+    Wenn möglich: zeig live einen echten (harmlosen) Pull Request im Browser, damit sie die grün/rote Diff-Ansicht und den „Merge"-Button einmal gesehen haben.</p></div>
+  </details>
+</section>
+
+
+<!-- ============ KAPITEL 11 ============ -->
+<section id="kap11" class="chapter">
+  <div class="chapter-num">Kapitel 11</div>
+  <h2>Die Kommandozeile – der „Profi-Weg"</h2>
+  <p class="lead">Alles, was du im Browser klickst, geht auch über getippte Befehle in einem schwarzen Fenster –
+  der Kommandozeile (auch „Terminal"). Du musst das <strong>nicht</strong> können, um loszulegen. Aber du sollst
+  wissen, dass es das gibt.</p>
+
+  <div class="terminal">
+    <div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><span class="c"># So sieht ein typischer Arbeitsablauf in der Kommandozeile aus:</span>
+<span class="p">$</span> <span class="k">git clone</span> https://github.com/firma/projekt.git   <span class="c"># erste Kopie holen</span>
+<span class="p">$</span> <span class="k">git add</span> angebot.txt        <span class="c"># Änderung in den Sammelkorb legen</span>
+<span class="p">$</span> <span class="k">git commit</span> -m "Preise aktualisiert"   <span class="c"># Schnappschuss + Nachricht</span>
+<span class="p">$</span> <span class="k">git push</span>                   <span class="c"># zu GitHub hochladen</span>
+</pre>
+  </div>
+
+  <p>Du erkennst die Begriffe wieder – es sind genau dieselben wie im Browser, nur getippt:</p>
+
+  <table>
+    <tr><th>Im Browser auf GitHub …</th><th>… als Befehl in der Kommandozeile</th></tr>
+    <tr><td>Projekt auf den Rechner holen</td><td><code>git clone …</code></td></tr>
+    <tr><td>Änderung markieren (Sammelkorb)</td><td><code>git add datei</code></td></tr>
+    <tr><td>„Commit changes" klicken</td><td><code>git commit -m "Nachricht"</code></td></tr>
+    <tr><td>Hochladen</td><td><code>git push</code></td></tr>
+    <tr><td>Neueste Änderungen holen</td><td><code>git pull</code></td></tr>
+    <tr><td>Neuen Branch anlegen</td><td><code>git branch name</code> / <code>git switch -c name</code></td></tr>
+    <tr><td>Zusammenführen</td><td><code>git merge name</code></td></tr>
+  </table>
+
+  <div class="callout miss">
+    <span class="tag">⚠️ Wichtig zur Beruhigung</span>
+    <p>Die Kommandozeile sieht „nach Hacker" aus, ist aber nur eine andere Bedienoberfläche für genau dieselben
+    Dinge. Für den Anfang reicht der Browser völlig. Viele nutzen außerdem grafische Programme wie
+    <strong>GitHub Desktop</strong> – Buttons statt Tippen.</p>
+  </div>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Merksatz</span>
+    <p>Browser, GitHub&nbsp;Desktop, Kommandozeile – drei Wege, <em>dasselbe</em> zu tun. Die Begriffe bleiben überall gleich.</p>
+  </div>
+</section>
+
+
+<!-- ============ KAPITEL 12 — MITMACHEN ============ -->
+<section id="kap12" class="chapter">
+  <div class="chapter-num">Kapitel 12 · Jetzt du!</div>
+  <h2>✋ Mitmach-Teil: deine erste Änderung auf GitHub</h2>
+  <p class="lead">Komplett im Browser, ohne Installation. Am Ende hast du ein eigenes Repository angelegt und
+  deinen ersten Commit gemacht. Folge den Schritten – ich begleite dich.</p>
+
+  <div class="callout mitmach">
+    <span class="tag">✋ Was du brauchst</span>
+    <p>Nur einen Browser und ein kostenloses GitHub-Konto. Falls noch keins da ist: auf
+    <strong>github.com</strong> → „Sign up" → mit E-Mail registrieren. (In der Firma evtl. das vorhandene
+    Organisations-Konto nutzen – frag im Zweifel deine Trainerin / deinen Trainer.)</p>
+  </div>
+
+  <ol class="steps">
+    <li><b>Repository anlegen.</b> Oben rechts auf <b>＋</b> → „New repository". Gib einen Namen ein
+    (z.&nbsp;B. <code>mein-erstes-repo</code>), setze einen Haken bei <b>„Add a README file"</b> und klicke
+    <b>„Create repository"</b>. → Du hast gerade ein <strong>Repository</strong> erstellt (Kapitel 4).</li>
+
+    <li><b>Die README öffnen &amp; bearbeiten.</b> Klicke auf die Datei <code>README.md</code> und dann oben rechts
+    auf das <b>Stift-Symbol ✏️</b> („Edit"). Schreib ein paar Zeilen über dich oder das Projekt.</li>
+
+    <li><b>Deinen ersten Commit machen.</b> Klicke oben rechts auf <b>„Commit changes…"</b>. Gib eine kurze
+    Nachricht ein, z.&nbsp;B. <i>„README mit Begrüßung ergänzt"</i>, und bestätige. → 🎉 Glückwunsch, das war dein
+    erster <strong>Commit</strong> – ein Schnappschuss mit Nachricht (Kapitel 5)!</li>
+
+    <li><b>Die Historie ansehen.</b> Geh zurück zur Startseite des Repos und klicke auf <b>„Commits"</b> (Uhr-/Listensymbol
+    über der Dateiliste). Dort siehst du deinen Schnappschuss mit Nachricht, Autor und Zeitpunkt. → Das ist die
+    <strong>Historie</strong> aus Kapitel 2.</li>
+  </ol>
+
+  <h3>Bonus (wenn Zeit ist): ein Pull Request</h3>
+  <ol class="steps">
+    <li><b>Branch anlegen.</b> Oben links über der Dateiliste auf das Branch-Menü (<code>main</code>) klicken,
+    einen neuen Namen tippen (z.&nbsp;B. <code>kleine-aenderung</code>) und „Create branch" wählen. → ein
+    <strong>Branch</strong> (Kapitel 7).</li>
+    <li><b>Im Branch ändern &amp; committen.</b> README erneut bearbeiten und committen – diesmal landet der Commit
+    im neuen Branch, nicht in <code>main</code>.</li>
+    <li><b>Pull Request öffnen.</b> GitHub schlägt oben „Compare &amp; pull request" vor → anklicken, kurz
+    beschreiben, <b>„Create pull request"</b>. → dein <strong>Pull Request</strong> (Kapitel 10).</li>
+    <li><b>Mergen.</b> Auf <b>„Merge pull request"</b> klicken → deine Änderung ist jetzt offiziell in
+    <code>main</code>. Fertig! 🥳</li>
+  </ol>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Geschafft</span>
+    <p>Du hast ein Repository angelegt, committet, die Historie gelesen und (optional) einen Pull Request gemergt –
+    den kompletten GitHub-Grundablauf einmal selbst durchgespielt.</p>
+  </div>
+
+  <details class="trainer">
+    <summary>🧑‍🏫 Trainer-Tipp</summary>
+    <div class="body"><p>Mach Schritt 1–4 einmal vor (Beamer), dann machen alle parallel mit. Plane Puffer fürs Login/Sign-up ein –
+    das kostet bei Einsteigern erfahrungsgemäß die meiste Zeit. Den Bonus nur angehen, wenn die Gruppe sicher wirkt.</p></div>
+  </details>
+</section>
+
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz" class="chapter">
+  <div class="chapter-num">Kleiner Selbsttest</div>
+  <h2>Hast du's? – 4 Fragen zum Aufklappen</h2>
+  <p class="muted">Erst überlegen, dann aufklappen. Keine Noten – nur zum Festigen. 🙂</p>
+
+  <details class="quiz"><summary>Was ist der Unterschied zwischen Git und GitHub?</summary>
+    <div class="a">Git ist das Werkzeug auf deinem Rechner (merkt sich Versionen, geht offline). GitHub ist eine
+    Webseite im Internet, auf der Projekte liegen und Teams zusammenarbeiten – wie E-Mail (Technik) vs. Gmail (Anbieter).</div></details>
+
+  <details class="quiz"><summary>Was ist ein Commit?</summary>
+    <div class="a">Ein bewusst gespeicherter Schnappschuss deines Projekts zu einem Moment – zusammen mit einer
+    kurzen Nachricht, was &amp; warum geändert wurde. Wie ein Foto mit Bildunterschrift.</div></details>
+
+  <details class="quiz"><summary>Push oder Pull – was ist was?</summary>
+    <div class="a">Push = hochladen (deine Commits hinauf zu GitHub geben). Pull = herunterladen (die neuesten
+    Änderungen der anderen zu dir holen). Clone = die allererste Kopie holen.</div></details>
+
+  <details class="quiz"><summary>Wofür ist ein Pull Request gut?</summary>
+    <div class="a">Um eine Änderung <em>vorzuschlagen</em>, bevor sie offiziell wird: andere können sie ansehen,
+    kommentieren und freigeben – dann wird sie in <code>main</code> gemergt. Wie „Änderungen vorschlagen" in Google Docs.</div></details>
+</section>
+
+
+<!-- ============ GLOSSAR ============ -->
+<section id="glossar" class="chapter">
+  <div class="chapter-num">Nachschlagen</div>
+  <h2>Glossar – alle Begriffe in einem Satz</h2>
+  <dl class="glossar">
+    <div><dt>Git</dt><dd>Das Werkzeug auf deinem Rechner, das sich jede Version deiner Dateien merkt.</dd></div>
+    <div><dt>GitHub</dt><dd>Eine Webseite im Internet, auf der Git-Projekte liegen und Teams zusammenarbeiten.</dd></div>
+    <div><dt>Repository („Repo")</dt><dd>Ein Projektordner mit Gedächtnis – Dateien plus komplette Änderungs-Historie.</dd></div>
+    <div><dt>Commit</dt><dd>Ein gespeicherter Schnappschuss des Projekts mit einer kurzen Nachricht „was &amp; warum".</dd></div>
+    <div><dt>Commit-Nachricht</dt><dd>Der erklärende Satz zu einem Commit – macht die Historie für Menschen lesbar.</dd></div>
+    <div><dt>Historie</dt><dd>Die Aneinanderreihung aller Commits – das Tagebuch des Projekts.</dd></div>
+    <div><dt>Arbeitsverzeichnis</dt><dd>Dein „Schreibtisch": hier bearbeitest du die Dateien tatsächlich.</dd></div>
+    <div><dt>Staging (Sammelkorb)</dt><dd>Zwischenablage für die Änderungen, die in den nächsten Commit sollen.</dd></div>
+    <div><dt>Branch (Zweig)</dt><dd>Eine parallele Arbeitskopie zum Ausprobieren, ohne die Hauptversion zu gefährden.</dd></div>
+    <div><dt>main</dt><dd>Der Hauptzweig – die offizielle, für alle gültige Version (früher oft „master").</dd></div>
+    <div><dt>Merge</dt><dd>Das Zusammenführen zweier Branches zu einer gemeinsamen Geschichte.</dd></div>
+    <div><dt>Merge-Konflikt</dt><dd>Dieselbe Stelle wurde doppelt unterschiedlich geändert – ein Mensch entscheidet, was gilt.</dd></div>
+    <div><dt>Clone</dt><dd>Die allererste Kopie eines Projekts von GitHub auf deinen Rechner holen.</dd></div>
+    <div><dt>Push</dt><dd>Deine Commits zu GitHub hochladen.</dd></div>
+    <div><dt>Pull</dt><dd>Die neuesten Änderungen der anderen von GitHub herunterladen.</dd></div>
+    <div><dt>Remote</dt><dd>Die Kopie des Repos „in der Ferne" – meist auf GitHub.</dd></div>
+    <div><dt>Pull Request (PR)</dt><dd>Ein Vorschlag für eine Änderung, der erst geprüft und dann gemergt wird.</dd></div>
+    <div><dt>Review</dt><dd>Das Anschauen und Kommentieren eines Pull Requests, bevor er übernommen wird.</dd></div>
+    <div><dt>Issue</dt><dd>Ein Ticket / eine Notiz auf GitHub: Fehler, Wunsch oder offene Aufgabe.</dd></div>
+    <div><dt>README</dt><dd>Die „Lies mich"-Datei, die ein Projekt auf seiner Startseite erklärt.</dd></div>
+  </dl>
+</section>
+
+
+<!-- ============ SPICKZETTEL ============ -->
+<section id="spick" class="chapter">
+  <div class="chapter-num">Zum Ausdrucken</div>
+  <h2>Spickzettel</h2>
+  <p class="muted">Die häufigsten Aktionen – im Browser und als Befehl. Tipp: Diese Seite über „Drucken"
+  (Strg/Cmd&nbsp;+&nbsp;P) als Handout speichern.</p>
+
+  <table>
+    <tr><th>Ich möchte …</th><th>Im Browser auf GitHub</th><th>Als Befehl</th></tr>
+    <tr><td>ein Projekt das erste Mal holen</td><td>Repo öffnen → „Code" → klonen/herunterladen</td><td><code>git clone …</code></td></tr>
+    <tr><td>eine Datei ändern</td><td>Datei → Stift ✏️ → tippen</td><td>im Editor ändern</td></tr>
+    <tr><td>einen Schnappschuss festhalten</td><td>„Commit changes" + Nachricht</td><td><code>git add .</code> → <code>git commit -m "…"</code></td></tr>
+    <tr><td>meine Änderungen teilen</td><td>passiert beim Commit im Browser</td><td><code>git push</code></td></tr>
+    <tr><td>Neues von anderen holen</td><td>Seite neu laden</td><td><code>git pull</code></td></tr>
+    <tr><td>einen Zweig zum Ausprobieren</td><td>Branch-Menü → neuen Namen → „Create branch"</td><td><code>git switch -c name</code></td></tr>
+    <tr><td>eine Änderung vorschlagen</td><td>„Compare &amp; pull request"</td><td>PR über github.com öffnen</td></tr>
+    <tr><td>einen Vorschlag übernehmen</td><td>„Merge pull request"</td><td><code>git merge name</code></td></tr>
+  </table>
+
+  <div class="callout merksatz">
+    <span class="tag">📌 Die ganze Schulung in einem Satz</span>
+    <p><strong>Git</strong> merkt sich jede Version deiner Dateien als <strong>Commits</strong>, <strong>GitHub</strong>
+    ist der Ort im Internet, wo das Projekt liegt – und über <strong>Pull Requests</strong> arbeitet ein Team
+    sicher zusammen.</p>
+  </div>
+</section>
+
+
+<!-- ============ ABSCHLUSS ============ -->
+<section id="ende" class="chapter">
+  <div class="chapter-num">Geschafft! 🎉</div>
+  <h2>Du weißt jetzt, was diese Werkzeuge sind</h2>
+  <p class="lead">Du kennst den Unterschied zwischen Git und GitHub, weißt, was ein Commit, ein Branch und ein
+  Pull Request sind – und hast deine erste Änderung selbst auf GitHub gemacht. Das ist ein super Fundament.</p>
+
+  <h3>Wenn du weitermachen möchtest</h3>
+  <ul>
+    <li><strong>GitHub Skills</strong> – kostenlose, interaktive Mini-Kurse direkt auf GitHub: <code>skills.github.com</code></li>
+    <li><strong>GitHub Docs (deutsch verfügbar)</strong> – das offizielle Handbuch: <code>docs.github.com</code></li>
+    <li><strong>GitHub Desktop</strong> – grafisches Programm, falls du lokal mit Buttons statt Browser arbeiten willst.</li>
+  </ul>
+
+  <div class="callout mitmach">
+    <span class="tag">✋ Letzter Tipp</span>
+    <p>Lernen klappt am besten durch Machen. Leg dir ein kleines, privates Übungs-Repo an und probiere in Ruhe
+    herum – kaputtmachen kannst du dabei nichts, dafür gibt es ja die Historie.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Git &amp; GitHub – Grundlagen für Einsteiger · Schulungsunterlage zum Mitnehmen ·
+  Diese Seite funktioniert offline und darf gern weitergegeben werden.
+</footer>
+
+</body>
+</html>
